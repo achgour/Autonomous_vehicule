@@ -1,0 +1,9 @@
+{
+    "name": "groupA",
+    "robot_list": {
+        "groupA": "localhost:5000",
+        "groupB": "localhost:5001"
+    },
+    "robot_priority": ["groupA", "groupB"]
+
+}

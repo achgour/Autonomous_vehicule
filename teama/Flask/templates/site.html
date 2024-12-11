@@ -1,0 +1,383 @@
+<!DOCTYPE HTML>
+    <html>
+        <head>
+            <title>Contrôle de la voiture</title>
+            <meta http-equiv='content-type' content='text/html; charset=UTF-8'>
+            <meta name='apple-mobile-web-app-capable' content='yes' />
+            <meta name='apple-mobile-web-app-status-bar-style' content='black-translucent' />
+            <meta http-equiv='refresh' content='10'>
+            <link rel="stylesheet" href="../static/rpi_style.css"/>
+            <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+            <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        </head>        
+        <body>
+            <div class="container">
+                <h1>Contrôle de la voiture</h1>
+                <div class="button-container">
+                    <!-- Bouton left -->
+                    <div>
+                        <button type="button" onclick="fct_bouton_left()" class="btn btn-outline-secondary button arrow-down" id="button-left">
+                            <i class="fa fa-arrow-left" aria-hidden="true"></i>
+                        </button>
+                    </div>
+            
+                    <!-- Boutons haut/bas (dans une colonne) -->
+                    <div class="button-column">
+                        <!-- Bouton up -->
+                        <div>
+                            <button type="button" onclick="fct_bouton_up()" class="btn btn-outline-secondary button arrow-up" id="button-up">
+                                <i class="fa fa-arrow-up" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Bouton down -->
+                        <div>
+                            <button type="button" onclick="fct_bouton_down()" class="btn btn-outline-secondary button" id="button-down">
+                                <i class="fa fa-arrow-down" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+            
+                    <!-- Bouton right -->
+                    <div>
+                        <button type="button" onclick="fct_bouton_right()" class="btn btn-outline-secondary button arrow-right" id="button-right">
+                            <i class="fa fa-arrow-right" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+            
+                <button type="button" onclick="fct_boutton_stop()" class="btn btn-danger" id="button_stop">
+                    Stop
+                </button>
+                <div id="speed-gauge-container" class="progress" style="width: 150px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <div id="speed-text">0%</div>
+                </div>
+                <script src="https://unpkg.com/@popperjs/core@2"></script>
+                <script>
+                    // Fonction pour récupérer la valeur de la vitesse depuis le stockage local
+                    function getStoredSpeed() {
+                        return localStorage.getItem('carSpeed') || 0;
+                    }
+                    // Fonction pour mettre à jour la jauge de vitesse
+                    function updateSpeed(value) {
+                        // Mettez à jour la jauge de vitesse Bootstrap
+                        document.querySelector('.progress-bar').style.width = value + '%';
+                        document.querySelector('.progress-bar').setAttribute('aria-valuenow', value);
+                         // Mettez à jour le texte de la vitesse
+                        const speedText = document.getElementById('speed-text');
+                        speedText.innerText = Math.ceil(value) + '%';
+                       // Enregistrez la valeur de la vitesse dans le stockage local
+                        localStorage.setItem('carSpeed', value);
+                        }
+                
+                      // Fonction pour récupérer la position du clic sur la jauge et mettre à jour la vitesse en conséquence
+                        document.getElementById('speed-gauge-container').addEventListener('click', function(event) {
+                            // Récupérez la largeur totale de la jauge
+                            const totalWidth = this.offsetWidth;
+                
+                            // Récupérez la position du clic par rapport à la jauge
+                            const clickPosition = event.clientX - this.getBoundingClientRect().left;
+                
+                            // Calculez la nouvelle valeur de la vitesse en pourcentage
+                            const newValue = (clickPosition / totalWidth) * 100;
+                
+                            // Mettez à jour la vitesse avec la nouvelle valeur
+                            updateSpeed(newValue);
+                        });
+                
+                        // Initialisez la jauge avec la valeur stockée
+                        updateSpeed(getStoredSpeed());
+                    </script>
+                </script>
+            </body>
+        <script>
+            var isButtonPressed = false;
+
+            //BOUTON UP
+            //SOURIS
+            var holdButton_UP = document.getElementById('button-up');
+
+            holdButton_UP.addEventListener('mousedown', function() {
+            isButtonPressed = true;
+                fetch('/bouton_up', {
+                    method: 'POST'
+                })
+                .then(response => response.text())
+                .then(message => {
+                    console.log(message);
+                });
+            console.log('Bouton maintenu enfoncé');
+            });
+
+            holdButton_UP.addEventListener('mouseup', function() {
+            isButtonPressed = false;
+                fetch('/bouton_stop', {
+                    method: 'POST'
+                })
+                .then(response => response.text())
+                .then(message => {
+                    console.log(message);
+                });
+            console.log('Bouton relâché');
+            });
+
+            //CLAVIER
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'z') { 
+                    fetch('/bouton_up', {
+                    method: 'POST'
+                    })
+                    .then(response => response.text())
+                    .then(message => {
+                    console.log(message);
+                    });
+                console.log('Bouton maintenu enfoncé avec le clavier');
+                event.preventDefault(); // Empêche le comportement par défaut de la touche d'espace (par exemple, le défilement de la page)
+                }
+            });
+
+            document.addEventListener('keyup', function(event) {
+                if (event.key === 'z') { 
+                    isButtonPressed = false;
+                    fetch('/bouton_stop', {
+                    method: 'POST'
+                    })
+                    .then(response => response.text())
+                    .then(message => {
+                    console.log(message);
+                    });
+                    console.log('Bouton relâché avec le clavier');
+                    event.preventDefault(); // Empêche le comportement par défaut de la touche d'espace (par exemple, le défilement de la page)
+                }
+            });
+
+            //BOUTON DOWN
+            //SOURIS
+            var holdButton_DOWN = document.getElementById('button-down');
+
+            holdButton_DOWN.addEventListener('mousedown', function() {
+            isButtonPressed = true;
+                fetch('/bouton_down', {
+                    method: 'POST'
+                })
+                .then(response => response.text())
+                .then(message => {
+                    console.log(message);
+                });
+            console.log('Bouton maintenu enfoncé');
+            });
+
+            holdButton_DOWN.addEventListener('mouseup', function() {
+            isButtonPressed = false;
+                fetch('/bouton_stop', {
+                    method: 'POST'
+                })
+                .then(response => response.text())
+                .then(message => {
+                    console.log(message);
+                });
+            console.log('Bouton relâché');
+            });
+            
+            //CLAVIER
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 's') { 
+                    fetch('/bouton_down', {
+                    method: 'POST'
+                    })
+                    .then(response => response.text())
+                    .then(message => {
+                    console.log(message);
+                    });
+                console.log('Bouton maintenu enfoncé avec le clavier');
+                event.preventDefault(); // Empêche le comportement par défaut de la touche d'espace (par exemple, le défilement de la page)
+                }
+            });
+
+            document.addEventListener('keyup', function(event) {
+                if (event.key === 's') { 
+                    isButtonPressed = false;
+                    fetch('/bouton_stop', {
+                    method: 'POST'
+                    })
+                    .then(response => response.text())
+                    .then(message => {
+                    console.log(message);
+                    });
+                    console.log('Bouton relâché avec le clavier');
+                    event.preventDefault(); // Empêche le comportement par défaut de la touche d'espace (par exemple, le défilement de la page)
+                }
+            });
+            
+            //BOUTON RIGHT
+            //SOURIS
+            var holdButton_RIGHT = document.getElementById('button-right');
+
+            holdButton_RIGHT.addEventListener('mousedown', function() {
+            isButtonPressed = true;
+                fetch('/bouton_right', {
+                    method: 'POST'
+                })
+                .then(response => response.text())
+                .then(message => {
+                    console.log(message);
+                });
+            console.log('Bouton maintenu enfoncé');
+            });
+
+            holdButton_RIGHT.addEventListener('mouseup', function() {
+            isButtonPressed = false;
+                fetch('/bouton_stop', {
+                    method: 'POST'
+                })
+                .then(response => response.text())
+                .then(message => {
+                    console.log(message);
+                });
+            console.log('Bouton relâché');
+            });
+            
+            //CLAVIER
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'd') { 
+                    fetch('/bouton_right', {
+                    method: 'POST'
+                    })
+                    .then(response => response.text())
+                    .then(message => {
+                    console.log(message);
+                    });
+                console.log('Bouton maintenu enfoncé avec le clavier');
+                event.preventDefault(); // Empêche le comportement par défaut de la touche d'espace (par exemple, le défilement de la page)
+                }
+            });
+
+            document.addEventListener('keyup', function(event) {
+                if (event.key === 'd') { 
+                    isButtonPressed = false;
+                    fetch('/bouton_stop', {
+                    method: 'POST'
+                    })
+                    .then(response => response.text())
+                    .then(message => {
+                    console.log(message);
+                    });
+                    console.log('Bouton relâché avec le clavier');
+                    event.preventDefault(); // Empêche le comportement par défaut de la touche d'espace (par exemple, le défilement de la page)
+                }
+            });
+            
+            //BOUTON LEFT
+            //SOURIS
+            var holdButton_LEFT = document.getElementById('button-left');
+
+            holdButton_LEFT.addEventListener('mousedown', function() {
+            isButtonPressed = true;
+                fetch('/bouton_left', {
+                    method: 'POST'
+                })
+                .then(response => response.text())
+                .then(message => {
+                    console.log(message);
+                });
+            console.log('Bouton maintenu enfoncé');
+            });
+
+            holdButton_LEFT.addEventListener('mouseup', function() {
+            isButtonPressed = false;
+                fetch('/bouton_stop', {
+                    method: 'POST'
+                })
+                .then(response => response.text())
+                .then(message => {
+                    console.log(message);
+                });
+            console.log('Bouton relâché');
+            });
+            
+            //CLAVIER
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'q') { 
+                    fetch('/bouton_left', {
+                    method: 'POST'
+                    })
+                    .then(response => response.text())
+                    .then(message => {
+                    console.log(message);
+                    });
+                console.log('Bouton maintenu enfoncé avec le clavier');
+                event.preventDefault(); // Empêche le comportement par défaut de la touche d'espace (par exemple, le défilement de la page)
+                }
+            });
+
+            document.addEventListener('keyup', function(event) {
+                if (event.key === 'q') { 
+                    isButtonPressed = false;
+                    fetch('/bouton_stop', {
+                    method: 'POST'
+                    })
+                    .then(response => response.text())
+                    .then(message => {
+                    console.log(message);
+                    });
+                    console.log('Bouton relâché avec le clavier');
+                    event.preventDefault(); // Empêche le comportement par défaut de la touche d'espace (par exemple, le défilement de la page)
+                }
+            });
+            // MANETTE
+            let controllerIndex = null;
+
+            window.addEventListener("gamepadconnected", (event) => {
+                const gamepad = event.gamepad;
+                controllerIndex = gamepad.index;
+                console.log("Manette connectée");
+
+                // Ajoutez un écouteur pour la mise à jour de la manette
+                requestAnimationFrame(updateGamepad);
+            });
+
+            window.addEventListener("gamepaddisconnected", (event) => {
+                controllerIndex = null;
+                console.log("Manette déconnectée");
+            });
+
+            // Fonction pour mettre à jour l'état de la manette
+            function updateGamepad() {
+                if (controllerIndex !== null) {
+                    const gamepad = navigator.getGamepads()[controllerIndex];
+
+                    // Vérifiez les valeurs des axes pour déterminer la direction
+                    const threshold = 0.5;
+
+                    // Axes du stick gauche
+                    const leftStickX = gamepad.axes[0];
+                    const leftStickY = gamepad.axes[1];
+
+                    if (leftStickX > threshold) {
+                        // Mouvement vers la droite
+                        fct_bouton_right();
+                    } else if (leftStickX < -threshold) {
+                        // Mouvement vers la gauche
+                        fct_bouton_left();
+                    }
+
+                    // Axes du stick droit
+                    const rightStickY = gamepad.axes[3];
+
+                    if (rightStickY > threshold) {
+                        // Mouvement vers le bas
+                        fct_bouton_down();
+                    } else if (rightStickY < -threshold) {
+                        // Mouvement vers le haut
+                        fct_bouton_up();
+                    };
+
+                    // Mettez à jour périodiquement l'état de la manette
+                    requestAnimationFrame(updateGamepad);
+                };
+            };
+        </script>
+</html>

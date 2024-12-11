@@ -1,0 +1,12 @@
+{
+    "name": "groupA",
+    "robot_list": {
+        "groupA": "robotpi-01.enst.fr",
+        "groupB": "robotpi-02.enst.fr",
+        "groupC": "robotpi-03.enst.fr",
+        "groupD": "robotpi-04.enst.fr",
+        "groupE": "robotpi-05.enst.fr"
+    },
+    "robot_priority": ["groupA", "groupB", "groupC", "groupD", "groupE"]
+
+}

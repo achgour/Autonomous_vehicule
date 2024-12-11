@@ -1,0 +1,188 @@
+openapi: 3.1.0
+info:
+  title: Swagger Collaborate Orchestrator
+  description: |-
+    This API allow a HTTP client to send command to the orchestrator for G1 PROJ103
+
+  contact:
+    email: proj103g1@rezel.net
+  license:
+    name: CC BY-NC-SA 4.0
+    url: http://creativecommons.org/licenses/by-nc-sa/4.0
+  version: 1.0.0
+servers:
+  - url: http://collaborate-orchestrator.bb0.fr
+tags:
+  - name: humancontrol
+    description: Allow human to send orders to orchestrator
+  - name: control
+    description: Control what the robot must do
+paths:
+  /humancontrol/start:
+    get:
+      tags:
+        - humancontrol
+      summary: Start the routine of the robot array
+      description: Using a get request with a JWT header it allows human to tell the orchestrator to start.
+      operationId: getStartHumanControl
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    examples: ["started"]
+        "401":
+          description: Unauthorized
+        "405":
+          description: Invalid input
+      security:
+        - api_key: []
+  /humancontrol/stop:
+    get:
+      tags:
+        - humancontrol
+      summary: Start the routine of the robot array
+      description: Using a get request with a JWT header it allows human to tell the orchestrator to start.
+      operationId: getStopHumanControl
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    examples: ["stopped"]
+        "401":
+          description: Unauthorized
+        "405":
+          description: Invalid input
+      security:
+        - api_key: []
+  /humancontrol/robot-order:
+    get:
+      tags:
+        - humancontrol
+      summary: Get the current robot order to enter the pit
+      description: Orchestrator send an object with linkage between robot domain and the order in the waiting line
+      operationId: getStopHumanControl
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    examples: ["stopped"]
+        "401":
+          description: Unauthorized
+        "405":
+          description: Invalid input
+      security:
+        - api_key: []
+
+  /control/mode:
+    get:
+      tags:
+        - control
+      summary: Get the current mode (Stopped, searching...)
+      description: Return the current mode of the robot
+      operationId: getControl
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Mode"
+    post:
+      tags:
+        - control
+      summary: Set the mode of a Robot
+      description: Set the mode that the robot must do (The marker is decided from the list of objectives)
+      requestBody:
+        description: Set this mode
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mode:
+                  type: string
+                  format: mode
+                  examples:
+                    ["stopped", "reached", "searching", "going", "ready"]
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Mode"
+        "401":
+          description: Unauthorized
+        "405":
+          description: Invalid input
+      security:
+        - api_key: []
+
+components:
+  schemas:
+    Objective:
+      type: object
+      properties:
+        name:
+          type: string
+          format: MX
+          examples: ["M1", "ZA"]
+        id:
+          type: integer
+          format: int64
+          examples: [6]
+    Objectives:
+      type: object
+      properties:
+        objectives:
+          type: array
+          items:
+            $ref: "#/components/schemas/Objective"
+
+    Mode:
+      type: object
+      properties:
+        mode:
+          type: string
+          format: mode
+          examples: ["stopped", "reached", "searching", "going", "ready"]
+        objective:
+          $ref: "#/components/schemas/Objective"
+
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        type:
+          type: string
+        message:
+          type: string
+      xml:
+        name: "##default"
+
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header

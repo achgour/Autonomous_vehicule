@@ -1,0 +1,184 @@
+openapi: 3.1.0
+info:
+  title: Swagger Collaborate RPI
+  description: |-
+    This API allow a HTTP client to send command to a robot for PROJ103 G1 Artefact project.
+
+  contact:
+    email: proj103g1@rezel.net
+  license:
+    name: CC BY-NC-SA 4.0
+    url: http://creativecommons.org/licenses/by-nc-sa/4.0
+  version: 1.0.0
+servers:
+  - url: http://collaborate-rpi.bb0.fr
+tags:
+  - name: objectives
+    description: Everything about objectives
+  - name: control
+    description: Control what the robot must do
+paths:
+  /objectives:
+    get:
+      tags:
+        - objectives
+      summary: Get the list of objectives
+      description: Return the list of marker number that the robot have to go to. When an objective is reached, it is deleted from the list
+      operationId: getObjectives
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Objectives'
+      
+    post:
+      tags:
+        - objectives
+      summary: Set a list of objectives to the robot
+      description: Set a list of objectives that the robot have to go to
+      operationId: postObjectives
+      requestBody:
+        description: Set this list of objectives to the robot
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Objectives'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Objectives'
+        '401':
+          description: Unauthorized
+        '405':
+          description: Invalid input
+      security:
+        - api_key: []
+    put:
+      tags:
+        - objectives
+      summary: Append a list of objectives to the robot
+      description: Append a list of objectives that the robot have to go to
+      operationId: putObjectives
+      requestBody:
+        description: Append this list of objectives to the robot
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Objectives'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Objectives'
+        '401':
+          description: Unauthorized
+        '405':
+          description: Invalid input
+      security:
+        - api_key: []
+  
+  /control/mode:
+    get:
+      tags:
+        - control
+      summary: Get the current mode (Stopped, searching...)
+      description: Return the current mode of the robot
+      operationId: getControl
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mode'
+    post:
+      tags:
+        - control
+      summary: Set the mode of a Robot
+      description: Set the mode that the robot must do (The marker is decided from the list of objectives)
+      requestBody:
+        description: Set this mode 
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mode:
+                  type: string
+                  format: mode
+                  examples: ["stopped","reached","searching","going","ready"]
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mode'
+        '401':
+          description: Unauthorized
+        '405':
+          description: Invalid input
+      security:
+        - api_key: []
+    
+
+ 
+components:
+  schemas:
+    Objective:
+      type: object
+      properties:
+        name:
+          type: string
+          format: MX
+          examples: ["M1","ZA"]
+        id:
+          type: integer
+          format: int64
+          examples: [6]
+    Objectives:
+      type: object
+      properties:
+        objectives:
+          type: array
+          items:
+              $ref: '#/components/schemas/Objective'
+
+    Mode:
+      type: object
+      properties:
+        mode:
+          type: string
+          format: mode
+          examples: ["stopped","reached","searching","going","ready"]
+        objective:
+          $ref: '#/components/schemas/Objective'
+
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        type:
+          type: string
+        message:
+          type: string
+      xml:
+        name: '##default'
+
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
